@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MULTIPLY_OS: 12 MINIGAMES (SAFE DIAL EDITION)</title>
+    <title>MULTIPLY_OS: 12 MINIGAMES (V6.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
@@ -78,7 +78,7 @@
         <div class="flex justify-between items-end border-b-2 border-amber-500 pb-2 mb-3 md:mb-4 uppercase shrink-0">
             <div>
                 <h1 class="text-xl md:text-3xl font-bold tracking-widest leading-none">MULTIPLY_OS</h1>
-                <p class="text-[10px] md:text-xs text-amber-700 mt-1">SYS V.6.2 // 12 MINIGAMES</p>
+                <p class="text-[10px] md:text-xs text-amber-700 mt-1">SYS V.6.3 // 12 MINIGAMES</p>
             </div>
             <div class="text-right">
                 <div class="text-sm md:text-xl">SCORE: <br class="block md:hidden"><span id="ui-score" class="text-xl md:text-3xl font-bold text-cyan-400">0000</span></div>
@@ -172,7 +172,7 @@
         function soundStrike() { playTone(200, 'triangle', 0.2, 0.2); }
         function soundFail() { playTone(100, 'sawtooth', 0.8, 0.4); } 
         function soundBlip() { playTone(1200, 'sine', 0.03, 0.05); }
-        function soundTick() { playTone(900, 'sine', 0.01, 0.02); } // เสียงแก๊กๆ ตอนหมุนตู้เซฟ
+        function soundTick() { playTone(900, 'sine', 0.01, 0.02); }
 
         let score = 0;
         let currentStrikes = 0;
@@ -180,7 +180,7 @@
         let currentAnswer = 0;
         let isLocked = false;
         
-        let gridInterval = null, glitchInterval = null, radarInterval = null, gaugeInterval = null;
+        let gridInterval = null, glitchInterval = null, radarInterval = null;
         let animationFrame = null;
         let memoryTimeout = null;
         let mainTimer = null;
@@ -229,11 +229,11 @@
 
             startTimer();
 
-            // สุ่ม 1 ใน 12 มินิเกม (เปลี่ยน Tune เป็น SafeDial)
+            // สุ่ม 1 ใน 12 มินิเกม (มี Tune และ SafeDial แต่ไม่มี Overload Gauge)
             const games = [
                 loadMinigameKeypad, loadMinigameSlider, loadMinigameGrid, loadMinigameWire, 
-                loadMinigameSafeDial, loadMinigameMemory, loadMinigameIntercept,
-                loadMinigameFirewall, loadMinigameRadar, loadMinigameGlitch, loadMinigameVault, loadMinigameGauge
+                loadMinigameTune, loadMinigameSafeDial, loadMinigameMemory, loadMinigameIntercept,
+                loadMinigameFirewall, loadMinigameRadar, loadMinigameGlitch, loadMinigameVault
             ];
             const selectedGame = games[Math.floor(Math.random() * games.length)];
             selectedGame();
@@ -241,7 +241,6 @@
 
         function startTimer() {
             clearInterval(mainTimer);
-            // เวลาจะหดลงจนเหลือ 3 วิ ที่ 5,000 คะแนน
             timeTotalMs = Math.max(3000, 20000 - (score / 5000) * 17000);
             timeLeftMs = timeTotalMs;
             
@@ -338,7 +337,6 @@
             if (gridInterval) clearInterval(gridInterval);
             if (glitchInterval) clearInterval(glitchInterval);
             if (radarInterval) clearInterval(radarInterval);
-            if (gaugeInterval) clearInterval(gaugeInterval);
             if (memoryTimeout) clearTimeout(memoryTimeout);
             if (animationFrame) cancelAnimationFrame(animationFrame);
         }
@@ -387,7 +385,7 @@
         }
 
         // ==========================================
-        // 2. TIMING SLIDER (ไม่มีเฉลยสีเขียว)
+        // 2. TIMING SLIDER
         // ==========================================
         function loadMinigameSlider() {
             let choices = generateWrongAnswers(currentAnswer, 2);
@@ -514,26 +512,54 @@
         }
 
         // ==========================================
-        // 5. SAFE DIAL (เกมหมุนตู้เซฟวงกลม 2-144)
+        // 5. SIGNAL TUNE (Slider 1-144 - Restored)
+        // ==========================================
+        function loadMinigameTune() {
+            mgContainer.innerHTML = `
+                <div class="flex flex-col items-center w-full max-w-[280px] md:max-w-sm" id="tune-container">
+                    <div class="text-xs md:text-sm mb-4 md:mb-6 text-amber-600 text-center">TUNE FREQUENCY TO MATCH</div>
+                    <div class="bg-zinc-900 border border-amber-800 w-full p-4 md:p-6 flex flex-col items-center mb-4 md:mb-6">
+                        <div class="text-[10px] md:text-xs text-amber-700 mb-1 md:mb-2">CURRENT FREQ</div>
+                        <div id="tune-display" class="text-5xl md:text-6xl font-bold text-cyan-400 font-mono tracking-tighter">50</div>
+                    </div>
+                    <input type="range" id="tune-slider" min="1" max="144" value="50" class="w-full mb-6 md:mb-8 accent-amber-500 h-6 md:h-4 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                    <button id="tune-submit" class="btn-retro w-full py-3 md:py-4 text-xl md:text-2xl font-bold active:scale-95">TRANSMIT</button>
+                </div>
+            `;
+            const container = document.getElementById('tune-container');
+            const slider = document.getElementById('tune-slider');
+            const display = document.getElementById('tune-display');
+            slider.value = Math.floor(Math.random() * 100) + 10;
+            display.textContent = slider.value;
+
+            slider.addEventListener('input', (e) => {
+                display.textContent = e.target.value;
+                if(e.target.value % 5 === 0) playTone(900, 'sine', 0.02, 0.05);
+            });
+            document.getElementById('tune-submit').addEventListener('pointerdown', () => {
+                if (isLocked) return;
+                if (!evaluateAnswer(parseInt(slider.value) === currentAnswer, container) && !isLocked) {
+                    display.classList.replace('text-cyan-400', 'text-red-500');
+                    setTimeout(() => display.classList.replace('text-red-500', 'text-cyan-400'), 500);
+                }
+            });
+        }
+
+        // ==========================================
+        // 6. SAFE DIAL
         // ==========================================
         function loadMinigameSafeDial() {
             mgContainer.innerHTML = `
                 <div class="flex flex-col items-center w-full max-w-[280px] md:max-w-sm" id="safedial-container">
                     <div class="text-xs md:text-sm mb-4 md:mb-6 text-amber-600 text-center">SPIN THE DIAL TO TARGET</div>
-                    
                     <div id="dial-wrapper" class="relative w-44 h-44 md:w-56 md:h-56 rounded-full border-4 border-zinc-700 bg-zinc-900 flex items-center justify-center cursor-pointer shadow-[0_0_20px_rgba(0,0,0,0.5)] mb-6 md:mb-8 touch-none">
-                        <!-- แถบสีวงกลมด้านนอกสำหรับหมุน -->
                         <div id="dial-knob" class="absolute w-full h-full rounded-full transition-transform duration-75" style="background: conic-gradient(from 180deg, transparent 0%, rgba(251,191,36,0.2) 100%);">
-                            <!-- ขีดบอกตำแหน่ง -->
                             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-4 md:h-5 bg-amber-500 rounded-b-sm"></div>
                         </div>
-                        
-                        <!-- ตรงกลางสำหรับแสดงตัวเลข -->
                         <div class="relative z-10 w-24 h-24 md:w-32 md:h-32 bg-black rounded-full flex items-center justify-center border-4 border-zinc-800 shadow-inner">
                             <span id="dial-display" class="text-4xl md:text-5xl font-bold text-cyan-400 tracking-tighter">73</span>
                         </div>
                     </div>
-
                     <button id="safedial-submit" class="btn-retro w-full py-3 md:py-4 text-xl md:text-2xl font-bold active:scale-95">UNLOCK</button>
                 </div>
             `;
@@ -544,9 +570,8 @@
             const display = document.getElementById('dial-display');
             const submitBtn = document.getElementById('safedial-submit');
 
-            let currentVal = Math.floor(Math.random() * 143) + 2; // สุ่มจุดเริ่มต้น 2-144
+            let currentVal = Math.floor(Math.random() * 143) + 2; 
             
-            // ตั้งค่าหมุนเริ่มต้น
             let initialDeg = ((currentVal - 2) / 142) * 360;
             dialKnob.style.transform = `rotate(${initialDeg}deg)`;
             display.textContent = currentVal;
@@ -569,19 +594,16 @@
 
                 let rad = Math.atan2(clientY - center.y, clientX - center.x);
                 let deg = rad * (180 / Math.PI);
-                deg = deg + 90; // ปรับให้ 0 องศาอยู่ด้านบน
+                deg = deg + 90; 
                 if (deg < 0) deg += 360;
 
                 let percentage = deg / 360;
-                currentVal = Math.round(2 + percentage * 142); // เทียบสัดส่วน 2 ถึง 144
+                currentVal = Math.round(2 + percentage * 142); 
                 
                 if (currentVal !== lastVal) {
                     display.textContent = currentVal;
                     dialKnob.style.transform = `rotate(${deg}deg)`;
-                    
-                    // เสียงติ๊กๆ เวลาหมุนเพื่อความสมจริง (เบาๆ)
                     if (currentVal % 2 === 0) soundTick();
-                    
                     lastVal = currentVal;
                 }
             }
@@ -608,7 +630,7 @@
         }
 
         // ==========================================
-        // 6. MEMORY HACK
+        // 7. MEMORY HACK
         // ==========================================
         function loadMinigameMemory() {
             let choices = generateWrongAnswers(currentAnswer, 3);
@@ -658,7 +680,7 @@
         }
 
         // ==========================================
-        // 7. DATA INTERCEPT
+        // 8. DATA INTERCEPT
         // ==========================================
         function loadMinigameIntercept() {
             let choices = generateWrongAnswers(currentAnswer, 3);
@@ -703,7 +725,7 @@
         }
 
         // ==========================================
-        // 8. FIREWALL DEFENSE
+        // 9. FIREWALL DEFENSE
         // ==========================================
         function loadMinigameFirewall() {
             let choices = generateWrongAnswers(currentAnswer, 4);
@@ -746,7 +768,7 @@
         }
 
         // ==========================================
-        // 9. RADAR SWEEP
+        // 10. RADAR SWEEP
         // ==========================================
         function loadMinigameRadar() {
             let choices = generateWrongAnswers(currentAnswer, 3);
@@ -802,7 +824,7 @@
         }
 
         // ==========================================
-        // 10. GLITCH CODE
+        // 11. GLITCH CODE
         // ==========================================
         function loadMinigameGlitch() {
             let choices = generateWrongAnswers(currentAnswer, 3);
@@ -854,7 +876,7 @@
         }
 
         // ==========================================
-        // 11. SECURE VAULT
+        // 12. SECURE VAULT
         // ==========================================
         function loadMinigameVault() {
             mgContainer.innerHTML = `
@@ -912,49 +934,6 @@
                 if (isLocked) return;
                 let userAns = (digits[0] * 100) + (digits[1] * 10) + digits[2];
                 evaluateAnswer(userAns === currentAnswer, container);
-            });
-        }
-
-        // ==========================================
-        // 12. OVERLOAD GAUGE
-        // ==========================================
-        function loadMinigameGauge() {
-            mgContainer.innerHTML = `
-                <div class="flex flex-col items-center w-full max-w-[280px] md:max-w-sm" id="gauge-container">
-                    <div class="text-[10px] md:text-sm mb-4 text-amber-600 text-center">OVERLOAD GAUGE (HALT ON TARGET)</div>
-                    <div class="bg-zinc-900 border-4 border-amber-800 rounded-full w-32 h-32 md:w-48 md:h-48 flex items-center justify-center mb-6 shadow-[0_0_15px_#991b1b]">
-                        <div id="gauge-display" class="text-5xl md:text-7xl font-bold text-red-500 font-mono tracking-tighter">0</div>
-                    </div>
-                    <div class="text-xs text-zinc-400 mb-2">*Allowance: ±1*</div>
-                    <button id="gauge-halt" class="btn-retro w-full py-4 md:py-5 text-2xl md:text-3xl font-bold bg-red-900/30 border-red-500 text-red-500 hover:bg-red-500 hover:text-white active:scale-95">HALT</button>
-                </div>
-            `;
-            const container = document.getElementById('gauge-container');
-            const display = document.getElementById('gauge-display');
-            
-            let currentValue = Math.max(0, currentAnswer - Math.floor(Math.random()*15 + 15)); 
-            display.textContent = currentValue;
-
-            gaugeInterval = setInterval(() => {
-                if (isLocked) return;
-                currentValue++;
-                if (currentValue > 150) currentValue = 0; 
-                display.textContent = currentValue;
-                if (currentValue % 10 === 0) soundBlip();
-            }, 80); 
-
-            document.getElementById('gauge-halt').addEventListener('pointerdown', () => {
-                if (isLocked) return;
-                let isCorrect = Math.abs(currentValue - currentAnswer) <= 1;
-                
-                if (isCorrect) {
-                    display.textContent = currentAnswer; 
-                }
-                
-                if (!evaluateAnswer(isCorrect, container) && !isLocked) {
-                    display.classList.replace('text-red-500', 'text-zinc-600');
-                    setTimeout(() => display.classList.replace('text-zinc-600', 'text-red-500'), 400);
-                }
             });
         }
     </script>
