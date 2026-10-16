@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MULTIPLY_OS: 12 MINIGAMES (V6.3)</title>
+    <title>MULTIPLY_OS: 12 MINIGAMES (V6.4 FIXED)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
@@ -78,7 +78,7 @@
         <div class="flex justify-between items-end border-b-2 border-amber-500 pb-2 mb-3 md:mb-4 uppercase shrink-0">
             <div>
                 <h1 class="text-xl md:text-3xl font-bold tracking-widest leading-none">MULTIPLY_OS</h1>
-                <p class="text-[10px] md:text-xs text-amber-700 mt-1">SYS V.6.3 // 12 MINIGAMES</p>
+                <p class="text-[10px] md:text-xs text-amber-700 mt-1">SYS V.6.4 // 12 MINIGAMES</p>
             </div>
             <div class="text-right">
                 <div class="text-sm md:text-xl">SCORE: <br class="block md:hidden"><span id="ui-score" class="text-xl md:text-3xl font-bold text-cyan-400">0000</span></div>
@@ -229,7 +229,7 @@
 
             startTimer();
 
-            // สุ่ม 1 ใน 12 มินิเกม (มี Tune และ SafeDial แต่ไม่มี Overload Gauge)
+            // สุ่ม 1 ใน 12 มินิเกม
             const games = [
                 loadMinigameKeypad, loadMinigameSlider, loadMinigameGrid, loadMinigameWire, 
                 loadMinigameTune, loadMinigameSafeDial, loadMinigameMemory, loadMinigameIntercept,
@@ -339,6 +339,13 @@
             if (radarInterval) clearInterval(radarInterval);
             if (memoryTimeout) clearTimeout(memoryTimeout);
             if (animationFrame) cancelAnimationFrame(animationFrame);
+        }
+
+        // ฟังก์ชันสำหรับปุ่ม REBOOT SYSTEM ที่เพิ่มให้ใหม่ครับ
+        function resetGame() {
+            soundClick();
+            screenOver.classList.add('hidden');
+            screenMenu.classList.remove('hidden');
         }
 
         function generateWrongAnswers(correct, count) {
@@ -512,7 +519,7 @@
         }
 
         // ==========================================
-        // 5. SIGNAL TUNE (Slider 1-144 - Restored)
+        // 5. SIGNAL TUNE
         // ==========================================
         function loadMinigameTune() {
             mgContainer.innerHTML = `
